@@ -1,0 +1,53 @@
+@CardService_HostAddress = http://localhost:5143
+@userId = 3ad2eefa-4c98-4d7e-9d80-0688df9d212b
+
+### Crear una tarjeta. El HTTP Client de Rider guarda el id para las siguientes solicitudes.
+POST {{CardService_HostAddress}}/api/cards
+Content-Type: application/json
+Accept: application/json
+
+{
+  "userId": "{{userId}}",
+  "holderName": "Ana Pérez",
+  "brand": "Tuya",
+  "last4": "1234",
+  "expirationMonth": 12,
+  "expirationYear": 2030
+}
+
+> {%
+    client.test("Tarjeta creada", function () {
+        client.assert(response.status === 201, "Se esperaba HTTP 201");
+    });
+    if (response.status === 201) {
+        client.global.set("cardId", response.body.id);
+    }
+%}
+
+### Consultar las tarjetas de un usuario
+GET {{CardService_HostAddress}}/api/cards/user/{{userId}}
+Accept: application/json
+
+### Consultar una tarjeta
+GET {{CardService_HostAddress}}/api/cards/{{cardId}}
+Accept: application/json
+
+### Actualizar una tarjeta (PUT reemplaza todos los datos editables)
+PUT {{CardService_HostAddress}}/api/cards/{{cardId}}
+Content-Type: application/json
+Accept: application/json
+
+{
+  "holderName": "Ana María Pérez",
+  "brand": "Tuya",
+  "last4": "9876",
+  "expirationMonth": 10,
+  "expirationYear": 2032
+}
+
+### Eliminar una tarjeta
+DELETE {{CardService_HostAddress}}/api/cards/{{cardId}}
+
+### Después de eliminar, devuelve HTTP 404
+GET {{CardService_HostAddress}}/api/cards/{{cardId}}
+Accept: application/json

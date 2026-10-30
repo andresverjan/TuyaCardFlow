@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: tuya_cards
+      POSTGRES_USER: tuya
+      POSTGRES_PASSWORD: tuya_local
+    ports:
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - cards_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tuya -d tuya_cards"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  cards_postgres_data:
