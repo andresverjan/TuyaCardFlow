@@ -1,23 +1,21 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+FROM node:24-alpine AS client
+WORKDIR /client
+COPY CardServiceFront/ClientApp/package*.json ./
+RUN npm ci
+COPY CardServiceFront/ClientApp/ ./
+RUN npm run build
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+COPY CardServiceFront/CardServiceFront.csproj CardServiceFront/
+RUN dotnet restore CardServiceFront/CardServiceFront.csproj
+COPY CardServiceFront/ CardServiceFront/
+COPY --from=client /wwwroot/ CardServiceFront/wwwroot/
+RUN dotnet publish CardServiceFront/CardServiceFront.csproj -c Release -o /app/publish -p:BuildClientApp=false
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
-EXPOSE 8081
-
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-ARG BUILD_CONFIGURATION=Release
-WORKDIR /src
-COPY ["CardServiceFront/CardServiceFront.csproj", "CardServiceFront/"]
-RUN dotnet restore "CardServiceFront/CardServiceFront.csproj"
-COPY . .
-WORKDIR "/src/CardServiceFront"
-RUN dotnet build "./CardServiceFront.csproj" -c $BUILD_CONFIGURATION -o /app/build
-
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "./CardServiceFront.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
-
-FROM base AS final
-WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "CardServiceFront.dll"]
