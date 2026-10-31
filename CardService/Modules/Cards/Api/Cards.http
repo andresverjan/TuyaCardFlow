@@ -1,10 +1,17 @@
 @CardService_HostAddress = http://localhost:5143
-@userId = 3ad2eefa-4c98-4d7e-9d80-0688df9d212b
 
-### Crear una tarjeta. El HTTP Client de Rider guarda el id para las siguientes solicitudes.
+### Antes: ejecuta Users.http para iniciar sesión y definir userId.
+### Obtener el token CSRF para la primera escritura
+GET {{CardService_HostAddress}}/api/auth/csrf
+Accept: application/json
+
+> {% client.global.set("csrfToken", response.body.token); %}
+
+### Crear una tarjeta del usuario autenticado
 POST {{CardService_HostAddress}}/api/cards
 Content-Type: application/json
 Accept: application/json
+X-CSRF-TOKEN: {{csrfToken}}
 
 {
   "userId": "{{userId}}",
@@ -24,7 +31,7 @@ Accept: application/json
     }
 %}
 
-### Consultar las tarjetas de un usuario
+### Consultar las tarjetas del usuario
 GET {{CardService_HostAddress}}/api/cards/user/{{userId}}
 Accept: application/json
 
@@ -36,6 +43,7 @@ Accept: application/json
 PUT {{CardService_HostAddress}}/api/cards/{{cardId}}
 Content-Type: application/json
 Accept: application/json
+X-CSRF-TOKEN: {{csrfToken}}
 
 {
   "holderName": "Ana María Pérez",
@@ -47,6 +55,7 @@ Accept: application/json
 
 ### Eliminar una tarjeta
 DELETE {{CardService_HostAddress}}/api/cards/{{cardId}}
+X-CSRF-TOKEN: {{csrfToken}}
 
 ### Después de eliminar, devuelve HTTP 404
 GET {{CardService_HostAddress}}/api/cards/{{cardId}}

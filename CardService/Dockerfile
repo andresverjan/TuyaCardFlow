@@ -1,4 +1,4 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
@@ -12,6 +12,14 @@ COPY ["CardService/Modules/Cards/Domain/Cards.Domain.csproj", "CardService/Modul
 COPY ["CardService/Modules/Cards/Application/Cards.Application.csproj", "CardService/Modules/Cards/Application/"]
 COPY ["CardService/Modules/Cards/Infrastructure/Cards.Infrastructure.csproj", "CardService/Modules/Cards/Infrastructure/"]
 COPY ["CardService/Modules/Cards/Api/Cards.Api.csproj", "CardService/Modules/Cards/Api/"]
+COPY ["CardService/Modules/Payments/Domain/Payments.Domain.csproj", "CardService/Modules/Payments/Domain/"]
+COPY ["CardService/Modules/Payments/Application/Payments.Application.csproj", "CardService/Modules/Payments/Application/"]
+COPY ["CardService/Modules/Payments/Infrastructure/Payments.Infrastructure.csproj", "CardService/Modules/Payments/Infrastructure/"]
+COPY ["CardService/Modules/Payments/Api/Payments.Api.csproj", "CardService/Modules/Payments/Api/"]
+COPY ["CardService/Modules/Users/Domain/Users.Domain.csproj", "CardService/Modules/Users/Domain/"]
+COPY ["CardService/Modules/Users/Application/Users.Application.csproj", "CardService/Modules/Users/Application/"]
+COPY ["CardService/Modules/Users/Infrastructure/Users.Infrastructure.csproj", "CardService/Modules/Users/Infrastructure/"]
+COPY ["CardService/Modules/Users/Api/Users.Api.csproj", "CardService/Modules/Users/Api/"]
 RUN dotnet restore "CardService/Api/CardService.Api.csproj"
 COPY . .
 WORKDIR "/src/CardService/Api"

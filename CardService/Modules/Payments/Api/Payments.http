@@ -1,0 +1,36 @@
+@host = http://localhost:5143
+
+### Primero crea/inicia sesión en Users.http y crea una tarjeta en Cards.http.
+### Obtener token CSRF antes de registrar un pago
+GET {{host}}/api/auth/csrf
+Accept: application/json
+
+> {% client.global.set("csrfToken", response.body.token); %}
+
+### Registrar un pago y su movimiento en el historial
+POST {{host}}/api/payments
+Content-Type: application/json
+Accept: application/json
+X-CSRF-TOKEN: {{csrfToken}}
+
+{
+  "userId": "{{userId}}",
+  "cardId": "{{cardId}}",
+  "amount": 12500.50,
+  "currency": "COP",
+  "description": "Pago registrado de tarjeta"
+}
+
+> {%
+    if (response.status === 201) {
+        client.global.set("transactionId", response.body.id);
+    }
+%}
+
+### Historial del usuario, del más reciente al más antiguo
+GET {{host}}/api/users/{{userId}}/transactions?page=1&pageSize=20
+Accept: application/json
+
+### Detalle de una transacción del usuario
+GET {{host}}/api/users/{{userId}}/transactions/{{transactionId}}
+Accept: application/json
