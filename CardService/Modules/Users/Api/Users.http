@@ -1,0 +1,74 @@
+@host = http://localhost:5143
+@password = Una frase de acceso segura 2026
+
+### Obtener el token CSRF para registrar un perfil
+GET {{host}}/api/auth/csrf
+Accept: application/json
+
+> {% client.global.set("csrfToken", response.body.token); %}
+
+### Crear perfil. Rider conserva userId para las solicitudes siguientes.
+POST {{host}}/api/users
+Content-Type: application/json
+Accept: application/json
+X-CSRF-TOKEN: {{csrfToken}}
+
+{
+  "fullName": "Ana Pérez",
+  "email": "ana@example.com",
+  "password": "{{password}}"
+}
+
+> {%
+    if (response.status === 201) {
+        client.global.set("userId", response.body.id);
+    }
+%}
+
+### Renovar token CSRF y sesión después de registrar el perfil
+GET {{host}}/api/auth/csrf
+Accept: application/json
+
+> {% client.global.set("csrfToken", response.body.token); %}
+
+### Iniciar sesión. Rider conserva la cookie HTTP-only.
+POST {{host}}/api/auth/login
+Content-Type: application/json
+Accept: application/json
+X-CSRF-TOKEN: {{csrfToken}}
+
+{
+  "email": "ana@example.com",
+  "password": "{{password}}"
+}
+
+### Perfil de la sesión actual
+GET {{host}}/api/auth/me
+Accept: application/json
+
+### Consultar el perfil propio
+GET {{host}}/api/users/{{userId}}
+Accept: application/json
+
+### Cambiar solo el nombre (conserva la sesión)
+PUT {{host}}/api/users/{{userId}}
+Content-Type: application/json
+
+{
+  "fullName": "Ana María Pérez",
+  "email": "ana@example.com"
+}
+
+### Listar perfiles (solo administrador)
+GET {{host}}/api/users?page=1&pageSize=20&isActive=true
+Accept: application/json
+
+### Emitir token CSRF antes de cerrar sesión
+GET {{host}}/api/auth/csrf
+Accept: application/json
+
+> {% client.global.set("csrfToken", response.body.token); %}
+
+### Cerrar sesión
+POST {{host}}/api/auth/logout
+X-CSRF-TOKEN: {{csrfToken}}
